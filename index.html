@@ -60,10 +60,10 @@
         <!-- FORMULARIOS -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-            <!-- Formulario 1: Capital del Participante -->
+            <!-- Formulario 1: Capital y Cajas Retiradas del Participante -->
             <div class="glass-card rounded-2xl p-6">
                 <h3 class="text-md font-bold text-white flex items-center gap-2 mb-4">
-                    <i data-lucide="user-plus" class="w-5 h-5 text-pink-400"></i> Registrar Participante y Capital
+                    <i data-lucide="user-plus" class="w-5 h-5 text-pink-400"></i> Registrar Participante
                 </h3>
                 <form id="partner-form" class="space-y-4">
                     <div>
@@ -71,13 +71,20 @@
                         <input type="text" id="partner-name" required placeholder="Ej. Juan" 
                             class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-pink-500">
                     </div>
-                    <div>
-                        <label class="block text-xs text-slate-400 mb-1">Capital Aportado (Bs.)</label>
-                        <input type="number" id="partner-capital" step="0.01" min="0" required placeholder="0.00" 
-                            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-pink-500">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Capital Aportado (Bs.)</label>
+                            <input type="number" id="partner-capital" step="0.01" min="0" required placeholder="0.00" 
+                                class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-pink-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Cajas Retiradas (Bs.)</label>
+                            <input type="number" id="partner-withdrawals" step="0.01" min="0" placeholder="0.00" 
+                                class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-pink-500">
+                        </div>
                     </div>
                     <button type="submit" class="w-full bg-pink-600 hover:bg-pink-500 text-white font-semibold text-sm py-2.5 rounded-xl transition-all">
-                        Guardar Capital
+                        Guardar Participante
                     </button>
                 </form>
             </div>
@@ -124,7 +131,7 @@
         <!-- TABLA DE REPARTO DE GANANCIAS POR SOCIO -->
         <div class="glass-card rounded-2xl p-6">
             <h3 class="text-md font-bold text-white flex items-center gap-2 mb-4">
-                <i data-lucide="users" class="w-5 h-5 text-emerald-400"></i> Reparto de Ganancias por Participante
+                <i data-lucide="users" class="w-5 h-5 text-emerald-400"></i> Reparto de Ganancias & Descuentos por Cajas
             </h3>
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-sm">
@@ -133,8 +140,9 @@
                             <th class="pb-3 font-semibold">Participante</th>
                             <th class="pb-3 font-semibold">Capital (Bs.)</th>
                             <th class="pb-3 font-semibold">% Aporte</th>
-                            <th class="pb-3 font-semibold">Ganancia Que Le Toca (Bs.)</th>
-                            <th class="pb-3 font-semibold text-right">Total a Cobrar (Bs.)</th>
+                            <th class="pb-3 font-semibold">Ganancia Corresponde (Bs.)</th>
+                            <th class="pb-3 font-semibold text-amber-400">Cajas Retiradas (Bs.)</th>
+                            <th class="pb-3 font-semibold text-right">Neto a Cobrar (Bs.)</th>
                             <th class="pb-3 font-semibold text-right">Borrar</th>
                         </tr>
                     </thead>
@@ -181,24 +189,27 @@
         document.getElementById('partner-form').addEventListener('submit', (e) => {
             e.preventDefault();
             const name = document.getElementById('partner-name').value.trim();
-            const capital = parseFloat(document.getElementById('partner-capital').value);
+            const capital = parseFloat(document.getElementById('partner-capital').value) || 0;
+            const withdrawals = parseFloat(document.getElementById('partner-withdrawals').value) || 0;
 
             const existingIndex = partners.findIndex(p => p.name.toLowerCase() === name.toLowerCase());
             if (existingIndex >= 0) {
                 partners[existingIndex].capital = capital;
+                partners[existingIndex].withdrawals = withdrawals;
             } else {
-                partners.push({ id: Date.now(), name, capital });
+                partners.push({ id: Date.now(), name, capital, withdrawals });
             }
 
             document.getElementById('partner-name').value = '';
             document.getElementById('partner-capital').value = '';
+            document.getElementById('partner-withdrawals').value = '';
             saveData();
         });
 
         document.getElementById('sale-form').addEventListener('submit', (e) => {
             e.preventDefault();
-            const boxCost = parseFloat(document.getElementById('box-cost').value);
-            const salePrice = parseFloat(document.getElementById('sale-price').value);
+            const boxCost = parseFloat(document.getElementById('box-cost').value) || 0;
+            const salePrice = parseFloat(document.getElementById('sale-price').value) || 0;
             const paymentMethod = document.querySelector('input[name="payment-method"]:checked').value;
 
             sales.push({
@@ -250,12 +261,13 @@
             const partnersBody = document.getElementById('partners-table-body');
             partnersBody.innerHTML = '';
             if (partners.length === 0) {
-                partnersBody.innerHTML = `<tr><td colspan="6" class="py-4 text-center text-xs text-slate-500">Sin participantes</td></tr>`;
+                partnersBody.innerHTML = `<tr><td colspan="7" class="py-4 text-center text-xs text-slate-500">Sin participantes</td></tr>`;
             } else {
                 partners.forEach(partner => {
                     const share = totalCapital > 0 ? (partner.capital / totalCapital) : 0;
                     const partnerProfit = totalProfit * share;
-                    const totalToCollect = partner.capital + partnerProfit;
+                    const partnerWithdrawals = partner.withdrawals || 0;
+                    const netToCollect = (partner.capital + partnerProfit) - partnerWithdrawals;
 
                     const row = document.createElement('tr');
                     row.innerHTML = `
@@ -263,7 +275,8 @@
                         <td class="py-3 text-slate-300">${formatBs(partner.capital)}</td>
                         <td class="py-3 text-slate-300">${(share * 100).toFixed(1)}%</td>
                         <td class="py-3 font-semibold ${partnerProfit >= 0 ? 'text-emerald-400' : 'text-red-400'}">${formatBs(partnerProfit)}</td>
-                        <td class="py-3 font-bold text-white text-right">${formatBs(totalToCollect)}</td>
+                        <td class="py-3 text-amber-400 font-medium">- ${formatBs(partnerWithdrawals)}</td>
+                        <td class="py-3 font-bold text-white text-right">${formatBs(netToCollect)}</td>
                         <td class="py-3 text-right">
                             <button onclick="deletePartner(${partner.id})" class="text-slate-500 hover:text-red-400">
                                 <i data-lucide="trash" class="w-4 h-4"></i>
