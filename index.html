@@ -1,18 +1,18 @@
 <!DOCTYPE html>
-<html lang="es" class="h-full bg-slate-900 text-slate-100">
+<html lang="es" class="h-full bg-slate-900">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TikTok Live Sales & Profit Dashboard</title>
+    <title>TikTok Live - Control de Ventas y Ganancias</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Chart.js para visualización de datos -->
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- Google Fonts Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
+    
     <script>
         tailwind.config = {
             theme: {
@@ -22,10 +22,9 @@
                     },
                     colors: {
                         tiktok: {
-                            cyan: '#00f2fe',
-                            pink: '#ff0050',
-                            dark: '#0f172a',
-                            card: '#1e293b'
+                            pink: '#FF0050',
+                            cyan: '#00F2FE',
+                            dark: '#121212'
                         }
                     }
                 }
@@ -33,716 +32,485 @@
         }
     </script>
     <style>
-        /* Personalización de scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }
-        ::-webkit-scrollbar-track {
-            background: #0f172a;
+        .glow-pink {
+            box-shadow: 0 0 20px rgba(255, 0, 80, 0.25);
         }
-        ::-webkit-scrollbar-thumb {
-            background: #334155;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #475569;
+        .glow-cyan {
+            box-shadow: 0 0 20px rgba(0, 242, 254, 0.25);
         }
     </style>
 </head>
-<body class="h-full flex flex-col font-sans antialiased bg-slate-950 text-slate-100">
+<body class="h-full text-slate-100 font-sans bg-slate-950 selection:bg-pink-500 selection:text-white">
 
-    <header class="bg-slate-900 border-b border-slate-800 sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16">
-                <!-- Logo & Titulo -->
-                <div class="flex items-center space-x-3">
-                    <div class="p-2 bg-gradient-to-tr from-tiktok-pink to-tiktok-cyan rounded-xl shadow-lg">
-                        <i data-lucide="box" class="w-6 h-6 text-slate-950 stroke-[2.5]"></i>
-                    </div>
-                    <div>
-                        <h1 class="font-bold text-lg leading-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
-                            LiveBox Manager
-                        </h1>
-                        <p class="text-xs text-slate-400">Control de Ventas & Socios TikTok</p>
-                    </div>
+    <!-- Header / Navbar -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-filter blur-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="p-2 bg-gradient-to-tr from-pink-500 to-cyan-400 rounded-xl shadow-lg">
+                    <i data-lucide="box" class="w-6 h-6 text-slate-950 stroke-[2.5]"></i>
                 </div>
-
-                <!-- Botones de Acción Global -->
-                <div class="flex items-center space-x-2 sm:space-x-3">
-                    <button id="btnExport" onclick="exportToCSV()" class="px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition flex items-center space-x-2 border border-slate-700">
-                        <i data-lucide="download" class="w-4 h-4"></i>
-                        <span class="hidden sm:inline">Exportar CSV</span>
-                    </button>
-                    <button id="btnReset" onclick="confirmReset()" class="px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg bg-red-950/50 hover:bg-red-900/60 text-red-300 border border-red-800/50 transition flex items-center space-x-2">
-                        <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
-                        <span class="hidden sm:inline">Reiniciar</span>
-                    </button>
+                <div>
+                    <h1 class="font-bold text-xl tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
+                        CajasLizard <span class="text-xs px-2 py-0.5 rounded-full bg-pink-500/20 text-pink-400 border border-pink-500/30">TikTok Live</span>
+                    </h1>
+                    <p class="text-xs text-slate-400">Control Financiero & Reparto de Ganancias</p>
                 </div>
+            </div>
+            <div class="flex items-center space-x-2">
+                <button onclick="resetAllData()" class="text-xs text-red-400 hover:text-red-300 hover:bg-red-950/40 px-3 py-2 rounded-lg transition-colors border border-red-900/30 flex items-center gap-1.5">
+                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Reiniciar Datos
+                </button>
             </div>
         </div>
     </header>
 
-    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
 
-        <!-- METRICAS RESUMEN (TARJETAS DE ARQUEO) -->
-        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <!-- Ingresos por QR -->
-            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-xl relative overflow-hidden group hover:border-slate-700 transition">
-                <div class="absolute -right-2 -bottom-2 opacity-10 group-hover:opacity-20 transition text-cyan-400">
-                    <i data-lucide="qr-code" class="w-24 h-24"></i>
-                </div>
+        <!-- METRICAS CLAVE DE RESUMEN -->
+        <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- Ventas Totales -->
+            <div class="glass-card rounded-2xl p-5 relative overflow-hidden group">
+                <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-pink-500/10 rounded-full blur-xl group-hover:bg-pink-500/20 transition-all"></div>
                 <div class="flex items-center justify-between">
-                    <span class="text-xs font-semibold text-cyan-400 uppercase tracking-wider">Caja QR</span>
-                    <span class="p-2 bg-cyan-500/10 text-cyan-400 rounded-xl"><i data-lucide="qr-code" class="w-5 h-5"></i></span>
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Ventas Totales</span>
+                    <div class="p-2 rounded-lg bg-pink-500/10 text-pink-400">
+                        <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+                    </div>
                 </div>
-                <div class="mt-3">
-                    <h3 class="text-2xl font-bold text-white" id="statQrTotal">$0.00</h3>
-                    <p class="text-xs text-slate-400 mt-1" id="statQrCount">0 transacciones</p>
+                <div class="mt-4">
+                    <div class="text-2xl font-bold text-white tracking-tight" id="metric-total-sales">Bs. 0.00</div>
+                    <p class="text-xs text-slate-400 mt-1" id="metric-sales-count">0 cajas vendidas</p>
                 </div>
             </div>
 
-            <!-- Ingresos por Efectivo -->
-            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-xl relative overflow-hidden group hover:border-slate-700 transition">
-                <div class="absolute -right-2 -bottom-2 opacity-10 group-hover:opacity-20 transition text-emerald-400">
-                    <i data-lucide="banknote" class="w-24 h-24"></i>
-                </div>
+            <!-- Costo Total -->
+            <div class="glass-card rounded-2xl p-5 relative overflow-hidden group">
                 <div class="flex items-center justify-between">
-                    <span class="text-xs font-semibold text-emerald-400 uppercase tracking-wider">Caja Efectivo</span>
-                    <span class="p-2 bg-emerald-500/10 text-emerald-400 rounded-xl"><i data-lucide="banknote" class="w-5 h-5"></i></span>
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Costo de Producción</span>
+                    <div class="p-2 rounded-lg bg-amber-500/10 text-amber-400">
+                        <i data-lucide="receipt" class="w-5 h-5"></i>
+                    </div>
                 </div>
-                <div class="mt-3">
-                    <h3 class="text-2xl font-bold text-white" id="statCashTotal">$0.00</h3>
-                    <p class="text-xs text-slate-400 mt-1" id="statCashCount">0 transacciones</p>
+                <div class="mt-4">
+                    <div class="text-2xl font-bold text-white tracking-tight" id="metric-total-costs">Bs. 0.00</div>
+                    <p class="text-xs text-slate-400 mt-1">Inversión en contenido/cajas</p>
                 </div>
             </div>
 
-            <!-- Ganancia Neta Total -->
-            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-xl relative overflow-hidden group hover:border-slate-700 transition">
-                <div class="absolute -right-2 -bottom-2 opacity-10 group-hover:opacity-20 transition text-purple-400">
-                    <i data-lucide="trending-up" class="w-24 h-24"></i>
-                </div>
+            <!-- Ganancia Neta -->
+            <div class="glass-card rounded-2xl p-5 relative overflow-hidden group border-emerald-500/30">
+                <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-emerald-500/10 rounded-full blur-xl group-hover:bg-emerald-500/20 transition-all"></div>
                 <div class="flex items-center justify-between">
-                    <span class="text-xs font-semibold text-purple-400 uppercase tracking-wider">Ganancia Neta</span>
-                    <span class="p-2 bg-purple-500/10 text-purple-400 rounded-xl"><i data-lucide="trending-up" class="w-5 h-5"></i></span>
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Ganancia Neta</span>
+                    <div class="p-2 rounded-lg bg-emerald-500/10 text-emerald-400">
+                        <i data-lucide="trending-up" class="w-5 h-5"></i>
+                    </div>
                 </div>
-                <div class="mt-3">
-                    <h3 class="text-2xl font-bold text-white" id="statProfitTotal">$0.00</h3>
-                    <p class="text-xs text-slate-400 mt-1" id="statMargin">Margen: 0%</p>
+                <div class="mt-4">
+                    <div class="text-2xl font-bold text-emerald-400 tracking-tight" id="metric-net-profit">Bs. 0.00</div>
+                    <p class="text-xs text-slate-400 mt-1">Disponible para repartir</p>
                 </div>
             </div>
 
-            <!-- Total Capital Invertido -->
-            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-xl relative overflow-hidden group hover:border-slate-700 transition">
-                <div class="absolute -right-2 -bottom-2 opacity-10 group-hover:opacity-20 transition text-pink-400">
-                    <i data-lucide="users" class="w-24 h-24"></i>
-                </div>
+            <!-- Capital Total Aportado -->
+            <div class="glass-card rounded-2xl p-5 relative overflow-hidden group">
                 <div class="flex items-center justify-between">
-                    <span class="text-xs font-semibold text-pink-400 uppercase tracking-wider">Capital Social</span>
-                    <span class="p-2 bg-pink-500/10 text-pink-400 rounded-xl"><i data-lucide="users" class="w-5 h-5"></i></span>
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Capital Social</span>
+                    <div class="p-2 rounded-lg bg-cyan-500/10 text-cyan-400">
+                        <i data-lucide="users" class="w-5 h-5"></i>
+                    </div>
                 </div>
-                <div class="mt-3">
-                    <h3 class="text-2xl font-bold text-white" id="statCapitalTotal">$0.00</h3>
-                    <p class="text-xs text-slate-400 mt-1" id="statPartnerCount">0 socios registrados</p>
+                <div class="mt-4">
+                    <div class="text-2xl font-bold text-white tracking-tight" id="metric-total-capital">Bs. 0.00</div>
+                    <p class="text-xs text-slate-400 mt-1" id="metric-partners-count">0 socios registrados</p>
                 </div>
             </div>
         </section>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-            <!-- MODULO 1: GESTION DE SOCIOS -->
-            <div class="lg:col-span-1 bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between shadow-xl">
+        <!-- ARQUEO DE CAJA (QR VS EFECTIVO) -->
+        <section class="glass-card rounded-2xl p-6 relative">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-800">
                 <div>
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="flex items-center space-x-2">
-                            <i data-lucide="user-plus" class="w-5 h-5 text-tiktok-pink"></i>
-                            <h2 class="font-bold text-slate-100">Socios y Capital</h2>
+                    <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                        <i data-lucide="wallet" class="w-5 h-5 text-cyan-400"></i> Arqueo de Caja por Método de Pago
+                    </h2>
+                    <p class="text-xs text-slate-400 mt-0.5">Desglose de dinero recibido en efectivo vs transferencias QR</p>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                <!-- Efectivo -->
+                <div class="bg-slate-900/60 rounded-xl p-5 border border-slate-800/80 flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="p-3 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20">
+                            <i data-lucide="banknote" class="w-8 h-8"></i>
                         </div>
-                        <span class="text-xs bg-slate-800 text-slate-400 px-2.5 py-1 rounded-full border border-slate-700">Aportes</span>
+                        <div>
+                            <span class="text-xs font-medium text-slate-400 block">Total en Efectivo</span>
+                            <span class="text-2xl font-bold text-white" id="cash-total">Bs. 0.00</span>
+                        </div>
                     </div>
+                    <div class="text-right">
+                        <span class="text-xs px-2 py-1 rounded bg-slate-800 text-slate-300 font-mono" id="cash-percent">0%</span>
+                    </div>
+                </div>
 
-                    <!-- Formulario Nuevo Socio -->
-                    <form id="partnerForm" onsubmit="handleAddPartner(event)" class="space-y-3 mb-5">
-                        <input type="hidden" id="partnerEditIndex" value="-1">
+                <!-- QR -->
+                <div class="bg-slate-900/60 rounded-xl p-5 border border-slate-800/80 flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="p-3 bg-cyan-500/10 text-cyan-400 rounded-xl border border-cyan-500/20">
+                            <i data-lucide="qr-code" class="w-8 h-8"></i>
+                        </div>
+                        <div>
+                            <span class="text-xs font-medium text-slate-400 block">Total Transferencias QR</span>
+                            <span class="text-2xl font-bold text-white" id="qr-total">Bs. 0.00</span>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-xs px-2 py-1 rounded bg-slate-800 text-slate-300 font-mono" id="qr-percent">0%</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCION PRINCIPAL: REGISTRO Y REPARTO -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+            <!-- COLUMNA IZQUIERDA: SOCIOS Y VENTAS (FORMULARIOS) -->
+            <div class="space-y-8 lg:col-span-1">
+                
+                <!-- Formulario 1: Agregar Socio / Capital -->
+                <div class="glass-card rounded-2xl p-6">
+                    <h3 class="text-md font-bold text-white flex items-center gap-2 mb-4">
+                        <i data-lucide="user-plus" class="w-4 h-4 text-pink-400"></i> Registrar Socio / Aporte
+                    </h3>
+                    <form id="partner-form" class="space-y-4">
                         <div>
                             <label class="block text-xs font-medium text-slate-400 mb-1">Nombre del Socio</label>
-                            <input type="text" id="partnerName" required placeholder="Ej. Juan Pérez" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-tiktok-pink transition">
+                            <input type="text" id="partner-name" required placeholder="Ej. Carlos" 
+                                class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-pink-500 transition-colors">
                         </div>
                         <div>
-                            <label class="block text-xs font-medium text-slate-400 mb-1">Capital Aportado ($)</label>
-                            <input type="number" step="0.01" min="0" id="partnerCapital" required placeholder="0.00" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-tiktok-pink transition">
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Capital Aportado (Bs.)</label>
+                            <input type="number" id="partner-capital" step="0.01" min="0" required placeholder="0.00" 
+                                class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-pink-500 transition-colors">
                         </div>
-                        <div class="flex space-x-2">
-                            <button type="submit" id="btnPartnerSubmit" class="flex-1 bg-gradient-to-r from-tiktok-pink to-rose-600 hover:opacity-90 text-white text-sm font-semibold py-2 px-4 rounded-xl shadow-lg transition flex items-center justify-center space-x-2">
-                                <i data-lucide="plus-circle" class="w-4 h-4"></i>
-                                <span id="partnerBtnText">Agregar Socio</span>
-                            </button>
-                            <button type="button" id="btnPartnerCancel" onclick="resetPartnerForm()" class="hidden bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium py-2 px-3 rounded-xl border border-slate-700">
-                                Cancelar
-                            </button>
-                        </div>
+                        <button type="submit" class="w-full bg-pink-600 hover:bg-pink-500 text-white font-medium text-sm py-2.5 rounded-xl shadow-lg glow-pink transition-all flex items-center justify-center gap-2">
+                            <i data-lucide="plus" class="w-4 h-4"></i> Añadir / Actualizar Socio
+                        </button>
                     </form>
-
-                    <!-- Lista Mini de Socios -->
-                    <div class="space-y-2 max-h-52 overflow-y-auto pr-1" id="partnerList">
-                        <!-- Render dinámico -->
-                    </div>
                 </div>
-            </div>
 
-            <!-- MODULO 2: FORMULARIO REGISTRO DE VENTAS DE CAJAS -->
-            <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex flex-col justify-between">
-                <div>
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="flex items-center space-x-2">
-                            <i data-lucide="shopping-cart" class="w-5 h-5 text-tiktok-cyan"></i>
-                            <h2 class="font-bold text-slate-100">Registrar Venta de Caja Live</h2>
+                <!-- Formulario 2: Registrar Venta -->
+                <div class="glass-card rounded-2xl p-6">
+                    <h3 class="text-md font-bold text-white flex items-center gap-2 mb-4">
+                        <i data-lucide="plus-circle" class="w-4 h-4 text-cyan-400"></i> Registrar Venta de Caja
+                    </h3>
+                    <form id="sale-form" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Identificador / Nombre de la Caja</label>
+                            <input type="text" id="box-name" required placeholder="Ej. Caja Sorpresa #12" 
+                                class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500 transition-colors">
                         </div>
-                        <span class="text-xs bg-cyan-950/80 text-cyan-300 border border-cyan-800/50 px-2.5 py-1 rounded-full">TikTok Live</span>
-                    </div>
-
-                    <form id="saleForm" onsubmit="handleAddSale(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div class="sm:col-span-1">
-                            <label class="block text-xs font-medium text-slate-400 mb-1">Fecha y Hora</label>
-                            <input type="datetime-local" id="saleDate" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-tiktok-cyan transition">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-400 mb-1">Precio Venta (Bs.)</label>
+                                <input type="number" id="sale-price" step="0.01" min="0" required placeholder="0.00" 
+                                    class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500 transition-colors">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-400 mb-1">Costo Producción (Bs.)</label>
+                                <input type="number" id="box-cost" step="0.01" min="0" required placeholder="0.00" 
+                                    class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500 transition-colors">
+                            </div>
                         </div>
-
-                        <div class="sm:col-span-1">
+                        <div>
                             <label class="block text-xs font-medium text-slate-400 mb-1">Método de Pago</label>
-                            <select id="salePayment" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-tiktok-cyan transition">
-                                <option value="QR">Transferencia QR</option>
-                                <option value="Efectivo">Efectivo en Mano</option>
-                            </select>
+                            <div class="grid grid-cols-2 gap-3">
+                                <label class="flex items-center justify-center gap-2 p-2.5 rounded-xl border border-slate-700/80 bg-slate-950/40 cursor-pointer has-[:checked]:border-cyan-500 has-[:checked]:bg-cyan-500/10 text-xs text-slate-300">
+                                    <input type="radio" name="payment-method" value="QR" checked class="hidden">
+                                    <i data-lucide="qr-code" class="w-4 h-4 text-cyan-400"></i> Pago QR
+                                </label>
+                                <label class="flex items-center justify-center gap-2 p-2.5 rounded-xl border border-slate-700/80 bg-slate-950/40 cursor-pointer has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-500/10 text-xs text-slate-300">
+                                    <input type="radio" name="payment-method" value="Efectivo" class="hidden">
+                                    <i data-lucide="banknote" class="w-4 h-4 text-emerald-400"></i> Efectivo
+                                </label>
+                            </div>
                         </div>
-
-                        <div class="sm:col-span-2">
-                            <label class="block text-xs font-medium text-slate-400 mb-1">Descripción / Tipo de Caja</label>
-                            <input type="text" id="saleDescription" placeholder="Ej. Caja Misteriosa Premium #4" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-tiktok-cyan transition">
-                        </div>
-
-                        <div class="sm:col-span-1">
-                            <label class="block text-xs font-medium text-slate-400 mb-1">Precio de Venta ($)</label>
-                            <input type="number" step="0.01" min="0" id="salePrice" placeholder="0.00" required oninput="calculateSaleMargin()" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-tiktok-cyan transition">
-                        </div>
-
-                        <div class="sm:col-span-1">
-                            <label class="block text-xs font-medium text-slate-400 mb-1">Costo Producto/Empaque ($)</label>
-                            <input type="number" step="0.01" min="0" id="saleCost" placeholder="0.00" required oninput="calculateSaleMargin()" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-tiktok-cyan transition">
-                        </div>
-
-                        <!-- Indicador visual rápido de ganancia -->
-                        <div class="sm:col-span-2 bg-slate-950/60 rounded-xl p-3 border border-slate-800/80 flex items-center justify-between text-xs">
-                            <span class="text-slate-400">Ganancia Estimada de esta caja:</span>
-                            <span id="saleProfitPreview" class="font-bold text-emerald-400">$0.00</span>
-                        </div>
-
-                        <div class="sm:col-span-2 pt-1">
-                            <button type="submit" class="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:opacity-90 text-slate-950 font-bold py-2.5 px-4 rounded-xl shadow-lg transition flex items-center justify-center space-x-2">
-                                <i data-lucide="plus" class="w-5 h-5"></i>
-                                <span>Guardar Venta</span>
-                            </button>
-                        </div>
+                        <button type="submit" class="w-full bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-sm py-2.5 rounded-xl shadow-lg glow-cyan transition-all flex items-center justify-center gap-2">
+                            <i data-lucide="plus" class="w-4 h-4"></i> Guardar Venta
+                        </button>
                     </form>
                 </div>
-            </div>
-        </div>
 
-        <!-- MODULO 3: TABLA DE DISTRIBUCION / REPARTO DE GANANCIAS -->
-        <section class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
-                <div>
-                    <h2 class="font-bold text-lg text-slate-100 flex items-center gap-2">
-                        <i data-lucide="pie-chart" class="w-5 h-5 text-emerald-400"></i>
-                        Reparto Final de Ganancias
-                    </h2>
-                    <p class="text-xs text-slate-400">Cálculo proporcional exacto de retornos y utilidades por socio</p>
-                </div>
-                <div class="text-xs bg-emerald-950/60 text-emerald-300 border border-emerald-800/50 px-3 py-1 rounded-lg">
-                    Modelo Proporcional Directo
-                </div>
             </div>
 
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="border-b border-slate-800 text-xs font-semibold text-slate-400 uppercase tracking-wider bg-slate-950/40">
-                            <th class="py-3 px-4">Socio</th>
-                            <th class="py-3 px-4 text-right">Capital Aportado</th>
-                            <th class="py-3 px-4 text-center">% Participación</th>
-                            <th class="py-3 px-4 text-right">Retorno Inversión</th>
-                            <th class="py-3 px-4 text-right">Ganancia Neta</th>
-                            <th class="py-3 px-4 text-right">Total a Recibir</th>
-                        </tr>
-                    </thead>
-                    <tbody id="payoutTableBody" class="divide-y divide-slate-800 text-sm">
-                        <!-- Render dinámico -->
-                    </tbody>
-                    <tfoot id="payoutTableFoot" class="bg-slate-950/80 font-semibold text-slate-200 text-sm border-t-2 border-slate-800">
-                        <!-- Totales -->
-                    </tfoot>
-                </table>
-            </div>
-        </section>
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-            <!-- HISTORIAL DE VENTAS REGISTRADAS -->
-            <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <div class="flex items-center space-x-2">
-                        <i data-lucide="list" class="w-5 h-5 text-slate-400"></i>
-                        <h2 class="font-bold text-slate-100">Historial de Ventas</h2>
+            <!-- COLUMNA DERECHA: TABLAS DE REPARTO Y DETALLES -->
+            <div class="space-y-8 lg:col-span-2">
+                
+                <!-- TABLA DE REPARTO DE GANANCIAS -->
+                <div class="glass-card rounded-2xl p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="text-md font-bold text-white flex items-center gap-2">
+                                <i data-lucide="pie-chart" class="w-4 h-4 text-emerald-400"></i> Reparto Proporcional de Ganancias
+                            </h3>
+                            <p class="text-xs text-slate-400">Cálculo en base al % de capital aportado</p>
+                        </div>
                     </div>
 
-                    <!-- Filtro -->
-                    <div class="flex items-center space-x-2">
-                        <label class="text-xs text-slate-400">Filtrar:</label>
-                        <select id="filterPayment" onchange="renderSalesTable()" class="bg-slate-950 border border-slate-800 text-xs text-slate-300 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-slate-600">
-                            <option value="ALL font-normal">Todos los métodos</option>
-                            <option value="QR">Solo QR</option>
-                            <option value="Efectivo">Solo Efectivo</option>
-                        </select>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead>
+                                <tr class="text-xs uppercase tracking-wider text-slate-400 border-b border-slate-800">
+                                    <th class="pb-3 font-semibold">Socio</th>
+                                    <th class="pb-3 font-semibold">Aporte (Bs.)</th>
+                                    <th class="pb-3 font-semibold">% Participación</th>
+                                    <th class="pb-3 font-semibold">Ganancia (Bs.)</th>
+                                    <th class="pb-3 font-semibold text-right">Total a Recibir (Bs.)</th>
+                                    <th class="pb-3 font-semibold text-right">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="partners-table-body" class="divide-y divide-slate-800/50">
+                                <!-- Dinámico -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
-                <div class="overflow-x-auto max-h-80 overflow-y-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead class="sticky top-0 bg-slate-900 z-10 border-b border-slate-800 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                            <tr>
-                                <th class="py-2.5 px-3">Fecha</th>
-                                <th class="py-2.5 px-3">Descripción</th>
-                                <th class="py-2.5 px-3 text-center">Método</th>
-                                <th class="py-2.5 px-3 text-right">Precio</th>
-                                <th class="py-2.5 px-3 text-right">Costo</th>
-                                <th class="py-2.5 px-3 text-right">Ganancia</th>
-                                <th class="py-2.5 px-3 text-center">Acción</th>
-                            </tr>
-                        </thead>
-                        <tbody id="salesTableBody" class="divide-y divide-slate-800/60 text-xs">
-                            <!-- Render dinámico -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+                <!-- TABLA HISTORIAL DE VENTAS -->
+                <div class="glass-card rounded-2xl p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="text-md font-bold text-white flex items-center gap-2">
+                                <i data-lucide="list" class="w-4 h-4 text-pink-400"></i> Historial de Cajas Vendidas
+                            </h3>
+                            <p class="text-xs text-slate-400">Registro detallado de transacciones</p>
+                        </div>
+                    </div>
 
-            <!-- GRAFICOS E INDICADORES VISUALES -->
-            <div class="lg:col-span-1 bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex flex-col justify-between">
-                <div>
-                    <h2 class="font-bold text-slate-100 mb-3 flex items-center gap-2">
-                        <i data-lucide="bar-chart-2" class="w-5 h-5 text-purple-400"></i>
-                        Distribución Metodológica
-                    </h2>
-                    <div class="h-56 relative flex items-center justify-center">
-                        <canvas id="paymentMethodChart"></canvas>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead>
+                                <tr class="text-xs uppercase tracking-wider text-slate-400 border-b border-slate-800">
+                                    <th class="pb-3 font-semibold">Caja / Detalle</th>
+                                    <th class="pb-3 font-semibold">Método</th>
+                                    <th class="pb-3 font-semibold">Venta (Bs.)</th>
+                                    <th class="pb-3 font-semibold">Costo (Bs.)</th>
+                                    <th class="pb-3 font-semibold">Ganancia Neta (Bs.)</th>
+                                    <th class="pb-3 font-semibold text-right">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sales-table-body" class="divide-y divide-slate-800/50">
+                                <!-- Dinámico -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-                <div class="mt-4 pt-3 border-t border-slate-800 text-xs text-slate-400 text-center">
-                    Visualización en vivo de los canales de cobro
-                </div>
+
             </div>
 
         </div>
 
     </main>
 
-    <footer class="bg-slate-900 border-t border-slate-800 py-4 mt-8">
-        <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500">
-            LiveBox Manager &copy; 2026 - Sistema de gestión para ventas en TikTok Lives. Todos los datos se guardan localmente en tu navegador.
-        </div>
-    </footer>
-
+    <!-- JS LÓGICA PRINCIPAL -->
     <script>
-        // ESTADO GLOBAL DE LA APLICACION
-        let partners = JSON.parse(localStorage.getItem('tiktok_partners')) || [
-            { name: "Socio Principal", capital: 500 },
-            { name: "Socio Secundario", capital: 300 }
-        ];
+        // Inicialización de Estados LocalStorage
+        let partners = JSON.parse(localStorage.getItem('tiktok_partners')) || [];
+        let sales = JSON.parse(localStorage.getItem('tiktok_sales')) || [];
 
-        let sales = JSON.parse(localStorage.getItem('tiktok_sales')) || [
-            { id: 1, date: new Date().toISOString().slice(0,16), description: "Caja Gamer Sorpresa", payment: "QR", price: 120, cost: 70 },
-            { id: 2, date: new Date().toISOString().slice(0,16), description: "Caja Maquillaje Glow", payment: "Efectivo", price: 80, cost: 40 }
-        ];
+        // Elementos DOM
+        const partnerForm = document.getElementById('partner-form');
+        const saleForm = document.getElementById('sale-form');
 
-        let chartInstance = null;
+        // Formateador de moneda en Bs.
+        const formatCurrency = (amount) => {
+            return `Bs. ${parseFloat(amount || 0).toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        };
 
-        // INICIALIZACION
-        window.addEventListener('DOMContentLoaded', () => {
-            // Establecer fecha por defecto en el input
-            document.getElementById('saleDate').value = new Date().toISOString().slice(0,16);
-            
-            // Renderizar la UI completa
-            updateUI();
-
-            // Inicializar Lucide Icons
-            lucide.createIcons();
-        });
-
-        // PERSISTENCIA EN LOCALSTORAGE
+        // Guardar Datos en LocalStorage
         function saveData() {
             localStorage.setItem('tiktok_partners', JSON.stringify(partners));
             localStorage.setItem('tiktok_sales', JSON.stringify(sales));
-            updateUI();
+            render();
         }
 
-        // ACTUALIZACION DE TODA LA UI
-        function updateUI() {
-            renderPartners();
-            renderSalesTable();
-            renderMetricsAndPayouts();
-            renderChart();
+        // AGREGAR / EDITAR SOCIO
+        partnerForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const nameInput = document.getElementById('partner-name');
+            const capitalInput = document.getElementById('partner-capital');
+
+            const name = nameInput.value.trim();
+            const capital = parseFloat(capitalInput.value);
+
+            const existingPartnerIndex = partners.findIndex(p => p.name.toLowerCase() === name.toLowerCase());
+
+            if (existingPartnerIndex >= 0) {
+                partners[existingPartnerIndex].capital = capital;
+            } else {
+                partners.push({ id: Date.now(), name, capital });
+            }
+
+            nameInput.value = '';
+            capitalInput.value = '';
+            saveData();
+        });
+
+        // ELIMINAR SOCIO
+        function deletePartner(id) {
+            partners = partners.filter(p => p.id !== id);
+            saveData();
+        }
+
+        // AGREGAR VENTA
+        saleForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const boxName = document.getElementById('box-name').value.trim();
+            const salePrice = parseFloat(document.getElementById('sale-price').value);
+            const boxCost = parseFloat(document.getElementById('box-cost').value);
+            const paymentMethod = document.querySelector('input[name="payment-method"]:checked').value;
+
+            const profit = salePrice - boxCost;
+
+            sales.push({
+                id: Date.now(),
+                boxName,
+                salePrice,
+                boxCost,
+                profit,
+                paymentMethod,
+                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            });
+
+            document.getElementById('box-name').value = '';
+            document.getElementById('sale-price').value = '';
+            document.getElementById('box-cost').value = '';
+            saveData();
+        });
+
+        // ELIMINAR VENTA
+        function deleteSale(id) {
+            sales = sales.filter(s => s.id !== id);
+            saveData();
+        }
+
+        // REINICIAR TODO
+        function resetAllData() {
+            if (confirm('¿Estás seguro de que deseas borrar todos los registros de ventas y socios?')) {
+                partners = [];
+                sales = [];
+                saveData();
+            }
+        }
+
+        // CÁLCULOS Y RENDERIZADO
+        function render() {
+            // Totales de Ventas y Financieros
+            const totalSales = sales.reduce((acc, s) => acc + s.salePrice, 0);
+            const totalCosts = sales.reduce((acc, s) => acc + s.boxCost, 0);
+            const totalProfit = totalSales - totalCosts;
+
+            // Arqueo Método de Pago
+            const qrSales = sales.filter(s => s.paymentMethod === 'QR').reduce((acc, s) => acc + s.salePrice, 0);
+            const cashSales = sales.filter(s => s.paymentMethod === 'Efectivo').reduce((acc, s) => acc + s.salePrice, 0);
+
+            const qrPercent = totalSales > 0 ? ((qrSales / totalSales) * 100).toFixed(1) : 0;
+            const cashPercent = totalSales > 0 ? ((cashSales / totalSales) * 100).toFixed(1) : 0;
+
+            // Capital Social
+            const totalCapital = partners.reduce((acc, p) => acc + p.capital, 0);
+
+            // Actualizar Métricas
+            document.getElementById('metric-total-sales').textContent = formatCurrency(totalSales);
+            document.getElementById('metric-sales-count').textContent = `${sales.length} cajas vendidas`;
+            document.getElementById('metric-total-costs').textContent = formatCurrency(totalCosts);
+            document.getElementById('metric-net-profit').textContent = formatCurrency(totalProfit);
+            document.getElementById('metric-total-capital').textContent = formatCurrency(totalCapital);
+            document.getElementById('metric-partners-count').textContent = `${partners.length} socios registrados`;
+
+            // Actualizar Arqueo
+            document.getElementById('qr-total').textContent = formatCurrency(qrSales);
+            document.getElementById('qr-percent').textContent = `${qrPercent}%`;
+            document.getElementById('cash-total').textContent = formatCurrency(cashSales);
+            document.getElementById('cash-percent').textContent = `${cashPercent}%`;
+
+            // TABLA SOCIOS
+            const partnersBody = document.getElementById('partners-table-body');
+            partnersBody.innerHTML = '';
+
+            if (partners.length === 0) {
+                partnersBody.innerHTML = `<tr><td colspan="6" class="py-4 text-center text-xs text-slate-500">No hay socios registrados</td></tr>`;
+            } else {
+                partners.forEach(partner => {
+                    const share = totalCapital > 0 ? (partner.capital / totalCapital) : 0;
+                    const partnerProfit = totalProfit * share;
+                    const totalReturn = partner.capital + partnerProfit;
+
+                    const row = document.createElement('tr');
+                    row.className = 'hover:bg-slate-800/30 transition-colors';
+                    row.innerHTML = `
+                        <td class="py-3 font-medium text-white">${partner.name}</td>
+                        <td class="py-3 text-slate-300">${formatCurrency(partner.capital)}</td>
+                        <td class="py-3 text-slate-300"><span class="px-2 py-0.5 rounded bg-slate-800 text-xs font-mono">${(share * 100).toFixed(1)}%</span></td>
+                        <td class="py-3 font-semibold ${partnerProfit >= 0 ? 'text-emerald-400' : 'text-red-400'}">${formatCurrency(partnerProfit)}</td>
+                        <td class="py-3 font-bold text-white text-right">${formatCurrency(totalReturn)}</td>
+                        <td class="py-3 text-right">
+                            <button onclick="deletePartner(${partner.id})" class="text-slate-500 hover:text-red-400 transition-colors p-1">
+                                <i data-lucide="trash" class="w-4 h-4"></i>
+                            </button>
+                        </td>
+                    `;
+                    partnersBody.appendChild(row);
+                });
+            }
+
+            // TABLA VENTAS
+            const salesBody = document.getElementById('sales-table-body');
+            salesBody.innerHTML = '';
+
+            if (sales.length === 0) {
+                salesBody.innerHTML = `<tr><td colspan="6" class="py-4 text-center text-xs text-slate-500">No hay ventas registradas</td></tr>`;
+            } else {
+                sales.slice().reverse().forEach(sale => {
+                    const row = document.createElement('tr');
+                    row.className = 'hover:bg-slate-800/30 transition-colors';
+                    row.innerHTML = `
+                        <td class="py-3 font-medium text-white">
+                            <div>${sale.boxName}</div>
+                            <div class="text-[10px] text-slate-500">${sale.timestamp}</div>
+                        </td>
+                        <td class="py-3">
+                            <span class="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full ${sale.paymentMethod === 'QR' ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'}">
+                                ${sale.paymentMethod}
+                            </span>
+                        </td>
+                        <td class="py-3 text-slate-200">${formatCurrency(sale.salePrice)}</td>
+                        <td class="py-3 text-slate-400">${formatCurrency(sale.boxCost)}</td>
+                        <td class="py-3 font-semibold ${sale.profit >= 0 ? 'text-emerald-400' : 'text-red-400'}">${formatCurrency(sale.profit)}</td>
+                        <td class="py-3 text-right">
+                            <button onclick="deleteSale(${sale.id})" class="text-slate-500 hover:text-red-400 transition-colors p-1">
+                                <i data-lucide="trash" class="w-4 h-4"></i>
+                            </button>
+                        </td>
+                    `;
+                    salesBody.appendChild(row);
+                });
+            }
+
             lucide.createIcons();
         }
 
-        // --- GESTION DE SOCIOS ---
-        function renderPartners() {
-            const container = document.getElementById('partnerList');
-            container.innerHTML = '';
-
-            const totalCapital = partners.reduce((acc, p) => acc + p.capital, 0);
-
-            if (partners.length === 0) {
-                container.innerHTML = `<p class="text-xs text-slate-500 text-center py-4">No hay socios registrados.</p>`;
-                return;
-            }
-
-            partners.forEach((partner, index) => {
-                const percentage = totalCapital > 0 ? ((partner.capital / totalCapital) * 100).toFixed(1) : 0;
-                
-                const item = document.createElement('div');
-                item.className = 'flex items-center justify-between p-2.5 bg-slate-950/70 border border-slate-800 rounded-xl hover:border-slate-700 transition';
-                item.innerHTML = `
-                    <div>
-                        <div class="text-xs font-semibold text-slate-200">${escapeHtml(partner.name)}</div>
-                        <div class="text-[11px] text-slate-400">$${partner.capital.toFixed(2)} (${percentage}%)</div>
-                    </div>
-                    <div class="flex items-center space-x-1">
-                        <button onclick="editPartner(${index})" class="p-1 text-slate-400 hover:text-cyan-400 transition" title="Editar">
-                            <i data-lucide="edit-2" class="w-3.5 h-3.5"></i>
-                        </button>
-                        <button onclick="deletePartner(${index})" class="p-1 text-slate-400 hover:text-red-400 transition" title="Eliminar">
-                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-                        </button>
-                    </div>
-                `;
-                container.appendChild(item);
-            });
-        }
-
-        function handleAddPartner(e) {
-            e.preventDefault();
-            const name = document.getElementById('partnerName').value.trim();
-            const capital = parseFloat(document.getElementById('partnerCapital').value);
-            const editIndex = parseInt(document.getElementById('partnerEditIndex').value);
-
-            if (!name || isNaN(capital)) return;
-
-            if (editIndex >= 0) {
-                partners[editIndex] = { name, capital };
-            } else {
-                partners.push({ name, capital });
-            }
-
-            resetPartnerForm();
-            saveData();
-        }
-
-        function editPartner(index) {
-            const partner = partners[index];
-            document.getElementById('partnerName').value = partner.name;
-            document.getElementById('partnerCapital').value = partner.capital;
-            document.getElementById('partnerEditIndex').value = index;
-            document.getElementById('partnerBtnText').innerText = "Actualizar Socio";
-            document.getElementById('btnPartnerCancel').classList.remove('hidden');
-        }
-
-        function resetPartnerForm() {
-            document.getElementById('partnerForm').reset();
-            document.getElementById('partnerEditIndex').value = "-1";
-            document.getElementById('partnerBtnText').innerText = "Agregar Socio";
-            document.getElementById('btnPartnerCancel').classList.add('hidden');
-        }
-
-        function deletePartner(index) {
-            if (confirm(`¿Seguro que deseas eliminar a ${partners[index].name}?`)) {
-                partners.splice(index, 1);
-                saveData();
-            }
-        }
-
-        // --- GESTION DE VENTAS ---
-        function calculateSaleMargin() {
-            const price = parseFloat(document.getElementById('salePrice').value) || 0;
-            const cost = parseFloat(document.getElementById('saleCost').value) || 0;
-            const profit = price - cost;
-
-            const preview = document.getElementById('saleProfitPreview');
-            preview.innerText = `$${profit.toFixed(2)}`;
-            if (profit >= 0) {
-                preview.className = "font-bold text-emerald-400";
-            } else {
-                preview.className = "font-bold text-red-400";
-            }
-        }
-
-        function handleAddSale(e) {
-            e.preventDefault();
-            const date = document.getElementById('saleDate').value;
-            const payment = document.getElementById('salePayment').value;
-            const description = document.getElementById('saleDescription').value.trim();
-            const price = parseFloat(document.getElementById('salePrice').value);
-            const cost = parseFloat(document.getElementById('saleCost').value);
-
-            if (!description || isNaN(price) || isNaN(cost)) return;
-
-            const newSale = {
-                id: Date.now(),
-                date,
-                payment,
-                description,
-                price,
-                cost
-            };
-
-            sales.unshift(newSale); // Agregar al inicio
-            document.getElementById('saleForm').reset();
-            document.getElementById('saleDate').value = new Date().toISOString().slice(0,16);
-            calculateSaleMargin();
-            saveData();
-        }
-
-        function deleteSale(id) {
-            if (confirm("¿Seguro que deseas eliminar este registro de venta?")) {
-                sales = sales.filter(s => s.id !== id);
-                saveData();
-            }
-        }
-
-        function renderSalesTable() {
-            const tbody = document.getElementById('salesTableBody');
-            const filter = document.getElementById('filterPayment').value;
-            tbody.innerHTML = '';
-
-            const filteredSales = sales.filter(s => filter === 'ALL font-normal' || filter === 'ALL' || s.payment === filter);
-
-            if (filteredSales.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-slate-500">No hay ventas registradas.</td></tr>`;
-                return;
-            }
-
-            filteredSales.forEach(sale => {
-                const profit = sale.price - sale.cost;
-                const formattedDate = sale.date ? sale.date.replace('T', ' ') : 'N/A';
-
-                const tr = document.createElement('tr');
-                tr.className = 'hover:bg-slate-800/40 transition';
-                tr.innerHTML = `
-                    <td class="py-2.5 px-3 text-slate-400 whitespace-nowrap">${formattedDate}</td>
-                    <td class="py-2.5 px-3 font-medium text-slate-200">${escapeHtml(sale.description)}</td>
-                    <td class="py-2.5 px-3 text-center">
-                        <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold ${
-                            sale.payment === 'QR' 
-                            ? 'bg-cyan-950 text-cyan-300 border border-cyan-800/50' 
-                            : 'bg-emerald-950 text-emerald-300 border border-emerald-800/50'
-                        }">
-                            ${sale.payment}
-                        </span>
-                    </td>
-                    <td class="py-2.5 px-3 text-right font-medium text-slate-200">$${sale.price.toFixed(2)}</td>
-                    <td class="py-2.5 px-3 text-right text-slate-400">$${sale.cost.toFixed(2)}</td>
-                    <td class="py-2.5 px-3 text-right font-bold ${profit >= 0 ? 'text-emerald-400' : 'text-red-400'}">
-                        $${profit.toFixed(2)}
-                    </td>
-                    <td class="py-2.5 px-3 text-center">
-                        <button onclick="deleteSale(${sale.id})" class="text-slate-500 hover:text-red-400 transition" title="Eliminar">
-                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-                        </button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function renderMetricsAndPayouts() {
-            // Totales de Caja
-            let totalQr = 0, countQr = 0;
-            let totalCash = 0, countCash = 0;
-            let totalSalesAmount = 0;
-            let totalCostsAmount = 0;
-
-            sales.forEach(s => {
-                totalSalesAmount += s.price;
-                totalCostsAmount += s.cost;
-
-                if (s.payment === 'QR') {
-                    totalQr += s.price;
-                    countQr++;
-                } else {
-                    totalCash += s.price;
-                    countCash++;
-                }
-            });
-
-            const totalProfit = totalSalesAmount - totalCostsAmount;
-            const margin = totalSalesAmount > 0 ? ((totalProfit / totalSalesAmount) * 100).toFixed(1) : 0;
-            const totalCapital = partners.reduce((acc, p) => acc + p.capital, 0);
-
-            // Actualizar tarjetas de métricas
-            document.getElementById('statQrTotal').innerText = `$${totalQr.toFixed(2)}`;
-            document.getElementById('statQrCount').innerText = `${countQr} ventas realizadas`;
-
-            document.getElementById('statCashTotal').innerText = `$${totalCash.toFixed(2)}`;
-            document.getElementById('statCashCount').innerText = `${countCash} ventas realizadas`;
-
-            document.getElementById('statProfitTotal').innerText = `$${totalProfit.toFixed(2)}`;
-            document.getElementById('statMargin').innerText = `Margen Neta: ${margin}%`;
-
-            document.getElementById('statCapitalTotal').innerText = `$${totalCapital.toFixed(2)}`;
-            document.getElementById('statPartnerCount').innerText = `${partners.length} socios registrados`;
-
-            // RENDER DE REPARTO DE GANANCIAS POR SOCIO
-            const payoutBody = document.getElementById('payoutTableBody');
-            const payoutFoot = document.getElementById('payoutTableFoot');
-            payoutBody.innerHTML = '';
-
-            if (partners.length === 0) {
-                payoutBody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-slate-500">Agrega socios para ver la distribución.</td></tr>`;
-                payoutFoot.innerHTML = '';
-                return;
-            }
-
-            let sumReturnedCapital = 0;
-            let sumProfitDistributed = 0;
-            let sumTotalPayout = 0;
-
-            partners.forEach(partner => {
-                const sharePercent = totalCapital > 0 ? (partner.capital / totalCapital) : 0;
-                // En este modelo el retorno de inversión + ganancia neta proporcional
-                const capitalReturn = partner.capital; 
-                const partnerProfit = totalProfit * sharePercent;
-                const totalPayout = capitalReturn + partnerProfit;
-
-                sumReturnedCapital += capitalReturn;
-                sumProfitDistributed += partnerProfit;
-                sumTotalPayout += totalPayout;
-
-                const tr = document.createElement('tr');
-                tr.className = 'hover:bg-slate-800/30 transition';
-                tr.innerHTML = `
-                    <td class="py-3 px-4 font-semibold text-slate-200">${escapeHtml(partner.name)}</td>
-                    <td class="py-3 px-4 text-right text-slate-300">$${partner.capital.toFixed(2)}</td>
-                    <td class="py-3 px-4 text-center font-medium text-cyan-400">${(sharePercent * 100).toFixed(1)}%</td>
-                    <td class="py-3 px-4 text-right text-slate-400">$${capitalReturn.toFixed(2)}</td>
-                    <td class="py-3 px-4 text-right font-semibold ${partnerProfit >= 0 ? 'text-emerald-400' : 'text-red-400'}">
-                        $${partnerProfit.toFixed(2)}
-                    </td>
-                    <td class="py-3 px-4 text-right font-bold text-white bg-slate-800/30">$${totalPayout.toFixed(2)}</td>
-                `;
-                payoutBody.appendChild(tr);
-            });
-
-            // Pie de Tabla
-            payoutFoot.innerHTML = `
-                <tr>
-                    <td class="py-3 px-4">TOTALES</td>
-                    <td class="py-3 px-4 text-right">$${totalCapital.toFixed(2)}</td>
-                    <td class="py-3 px-4 text-center">100%</td>
-                    <td class="py-3 px-4 text-right">$${sumReturnedCapital.toFixed(2)}</td>
-                    <td class="py-3 px-4 text-right text-emerald-400">$${sumProfitDistributed.toFixed(2)}</td>
-                    <td class="py-3 px-4 text-right text-cyan-300">$${sumTotalPayout.toFixed(2)}</td>
-                </tr>
-            `;
-        }
-
-        function renderChart() {
-            const ctx = document.getElementById('paymentMethodChart').getContext('2d');
-
-            let totalQr = 0;
-            let totalCash = 0;
-
-            sales.forEach(s => {
-                if (s.payment === 'QR') totalQr += s.price;
-                else totalCash += s.price;
-            });
-
-            if (chartInstance) {
-                chartInstance.destroy();
-            }
-
-            chartInstance = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['QR / Transf.', 'Efectivo'],
-                    datasets: [{
-                        data: [totalQr, totalCash],
-                        backgroundColor: ['#00f2fe', '#10b981'],
-                        borderColor: '#0f172a',
-                        borderWidth: 3,
-                        hoverOffset: 4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                color: '#94a3b8',
-                                font: { family: 'Inter', size: 12 },
-                                padding: 15
-                            }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    const value = context.raw || 0;
-                                    return ` $${value.toFixed(2)}`;
-                                }
-                            }
-                        }
-                    },
-                    cutout: '70%'
-                }
-            });
-        }
-
-        function exportToCSV() {
-            if (sales.length === 0) {
-                alert("No hay ventas registradas para exportar.");
-                return;
-            }
-
-            let csvContent = "data:text/csv;charset=utf-8,";
-            csvContent += "ID,Fecha,Descripcion,MetodoPago,PrecioVenta,Costo,Ganancia\n";
-
-            sales.forEach(s => {
-                const profit = s.price - s.cost;
-                const row = `"${s.id}","${s.date}","${s.description.replace(/"/g, '""')}","${s.payment}",${s.price},${s.cost},${profit}`;
-                csvContent += row + "\n";
-            });
-
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `Ventas_TikTok_Live_${new Date().toISOString().slice(0,10)}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-
-        function confirmReset() {
-            if (confirm("¿Estás seguro de que deseas reiniciar todos los datos? Se borrarán socios y ventas.")) {
-                localStorage.removeItem('tiktok_partners');
-                localStorage.removeItem('tiktok_sales');
-                partners = [];
-                sales = [];
-                updateUI();
-            }
-        }
-
-        function escapeHtml(str) {
-            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-        }
+        // Carga inicial
+        document.addEventListener('DOMContentLoaded', () => {
+            render();
+        });
     </script>
 </body>
-  </html>
+</html>
