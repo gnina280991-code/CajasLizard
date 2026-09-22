@@ -10,6 +10,8 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- SheetJS para exportar a Excel -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- html2canvas para descargar la imagen del informe -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; }
@@ -29,6 +31,9 @@
                 <i data-lucide="box" class="w-6 h-6 text-pink-500"></i> Control Cajas & Ganancias
             </h1>
             <div class="flex items-center gap-2">
+                <button onclick="downloadReportImage()" class="text-xs bg-pink-600 hover:bg-pink-500 text-white font-semibold px-3 py-2 rounded-lg border border-pink-500/30 flex items-center gap-1.5 transition-all shadow-lg shadow-pink-950/50">
+                    <i data-lucide="camera" class="w-4 h-4"></i> Descargar Foto Informe
+                </button>
                 <button onclick="exportToExcelSingleSheet()" class="text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-3 py-2 rounded-lg border border-emerald-500/30 flex items-center gap-1.5 transition-all shadow-lg shadow-emerald-950/50">
                     <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Exportar Excel
                 </button>
@@ -161,11 +166,15 @@
 
         </div>
 
-        <!-- TABLA DE REPARTO POR SOCIO -->
-        <div class="glass-card rounded-2xl p-6">
-            <h3 class="text-md font-bold text-white flex items-center gap-2 mb-4">
-                <i data-lucide="users" class="w-5 h-5 text-emerald-400"></i> Reparto por Participante (Control de Cajas)
-            </h3>
+        <!-- TABLA DE REPARTO POR SOCIO (Esta sección se convertirá en foto de alta calidad) -->
+        <div id="report-card" class="glass-card rounded-2xl p-6 border border-emerald-500/30">
+            <div class="flex flex-wrap justify-between items-center mb-4 gap-2">
+                <h3 class="text-md font-bold text-white flex items-center gap-2">
+                    <i data-lucide="users" class="w-5 h-5 text-emerald-400"></i> Informe de Liquidación por Participante
+                </h3>
+                <span class="text-xs text-slate-400" id="report-date-tag"></span>
+            </div>
+            
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-sm">
                     <thead>
@@ -177,11 +186,31 @@
                             <th class="pb-3 font-semibold">Ganancia (Bs.)</th>
                             <th class="pb-3 font-semibold text-amber-400">Cajas Retiradas</th>
                             <th class="pb-3 font-semibold text-right">Neto a Cobrar (Bs.)</th>
-                            <th class="pb-3 font-semibold text-right">Borrar</th>
+                            <th class="pb-3 font-semibold text-right no-export">Borrar</th>
                         </tr>
                     </thead>
                     <tbody id="partners-table-body" class="divide-y divide-slate-800/50"></tbody>
                 </table>
+            </div>
+
+            <!-- Resumen al pie del informe de imagen -->
+            <div class="mt-6 pt-4 border-t border-slate-800 grid grid-cols-2 sm:grid-cols-4 gap-3 text-center text-xs">
+                <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
+                    <span class="text-slate-400 block text-[10px] uppercase">Cajas Aportadas</span>
+                    <span class="font-bold text-white text-sm" id="report-total-boxes">0</span>
+                </div>
+                <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
+                    <span class="text-slate-400 block text-[10px] uppercase">Cajas Retiradas</span>
+                    <span class="font-bold text-amber-400 text-sm" id="report-total-withdrawals">0</span>
+                </div>
+                <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
+                    <span class="text-slate-400 block text-[10px] uppercase">Ganancia Neta Total</span>
+                    <span class="font-bold text-emerald-400 text-sm" id="report-total-profit">Bs. 0.00</span>
+                </div>
+                <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
+                    <span class="text-slate-400 block text-[10px] uppercase">Total Neto Liquidado</span>
+                    <span class="font-bold text-cyan-400 text-sm" id="report-total-payout">Bs. 0.00</span>
+                </div>
             </div>
         </div>
 
@@ -325,11 +354,17 @@
             const cashSales = sales.filter(s => s.paymentMethod === 'Efectivo').reduce((acc, s) => acc + s.salePrice, 0);
             
             const totalPartnerBoxes = partners.reduce((acc, p) => acc + p.boxes, 0);
+            const totalWithdrawals = partners.reduce((acc, p) => acc + (p.withdrawals || 0), 0);
 
             document.getElementById('qr-total').textContent = formatBs(qrSales);
             document.getElementById('cash-total').textContent = formatBs(cashSales);
             document.getElementById('metric-total-costs').textContent = formatBs(totalCosts);
             document.getElementById('metric-net-profit').textContent = formatBs(totalProfit);
+
+            // Fecha en informe
+            document.getElementById('report-date-tag').textContent = `Actualizado: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+
+            let grandTotalPayout = 0;
 
             // TABLA SOCIOS
             const partnersBody = document.getElementById('partners-table-body');
@@ -341,8 +376,9 @@
                     const share = totalPartnerBoxes > 0 ? (partner.boxes / totalPartnerBoxes) : 0;
                     const partnerCapitalBs = partner.boxes * config.costPerBox;
                     const partnerProfit = totalProfit * share;
-                    const withdrawalBs = partner.withdrawals * config.costPerBox;
+                    const withdrawalBs = (partner.withdrawals || 0) * config.costPerBox;
                     const netToCollect = (partnerCapitalBs + partnerProfit) - withdrawalBs;
+                    grandTotalPayout += netToCollect;
 
                     const row = document.createElement('tr');
                     row.innerHTML = `
@@ -351,9 +387,9 @@
                         <td class="py-3 text-slate-400">${formatBs(partnerCapitalBs)}</td>
                         <td class="py-3 text-slate-300">${(share * 100).toFixed(1)}%</td>
                         <td class="py-3 font-semibold ${partnerProfit >= 0 ? 'text-emerald-400' : 'text-red-400'}">${formatBs(partnerProfit)}</td>
-                        <td class="py-3 text-amber-400 font-medium">${partner.withdrawals} cajas (${formatBs(withdrawalBs)})</td>
+                        <td class="py-3 text-amber-400 font-medium">${partner.withdrawals || 0} cajas (${formatBs(withdrawalBs)})</td>
                         <td class="py-3 font-bold text-white text-right">${formatBs(netToCollect)}</td>
-                        <td class="py-3 text-right">
+                        <td class="py-3 text-right no-export">
                             <button onclick="deletePartner(${partner.id})" class="text-slate-500 hover:text-red-400">
                                 <i data-lucide="trash" class="w-4 h-4"></i>
                             </button>
@@ -362,6 +398,12 @@
                     partnersBody.appendChild(row);
                 });
             }
+
+            // Totales al pie del cuadro de informe
+            document.getElementById('report-total-boxes').textContent = `${totalPartnerBoxes} cajas`;
+            document.getElementById('report-total-withdrawals').textContent = `${totalWithdrawals} cajas`;
+            document.getElementById('report-total-profit').textContent = formatBs(totalProfit);
+            document.getElementById('report-total-payout').textContent = formatBs(grandTotalPayout);
 
             // TABLA VENTAS
             const salesBody = document.getElementById('sales-table-body');
@@ -392,6 +434,34 @@
             }
 
             lucide.createIcons();
+        }
+
+        // FUNCIÓN PARA DESCARGAR EL INFORME COMO IMAGEN (PNG)
+        function downloadReportImage() {
+            const reportElement = document.getElementById('report-card');
+            
+            // Ocultar botones de borrar temporalmente para la foto
+            const noExportElems = reportElement.querySelectorAll('.no-export');
+            noExportElems.forEach(el => el.style.display = 'none');
+
+            html2canvas(reportElement, {
+                backgroundColor: '#020617', // Fondo slate-950
+                scale: 2, // Imagen HD de alta resolución
+                logging: false,
+                useCORS: true
+            }).then(canvas => {
+                // Restaurar visibilidad de los botones de borrar
+                noExportElems.forEach(el => el.style.display = '');
+
+                // Descargar imagen
+                const link = document.createElement('a');
+                link.download = `Informe_Socios_Cajas_${new Date().toISOString().slice(0,10)}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            }).catch(err => {
+                noExportElems.forEach(el => el.style.display = '');
+                console.error("Error al generar la foto del informe:", err);
+            });
         }
 
         // FUNCIÓN DE EXPORTACIÓN A EXCEL EN UNA SOLA HOJA
@@ -489,10 +559,8 @@
                 });
             }
 
-            // CREAR HOJA Y LIBRO XLSX
             const worksheet = XLSX.utils.aoa_to_sheet(sheetData);
 
-            // Ajustar ancho de columnas para mejor presentación
             worksheet['!cols'] = [
                 { wch: 25 },
                 { wch: 22 },
@@ -507,7 +575,6 @@
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, "Reporte Control Cajas");
 
-            // Descargar archivo
             XLSX.writeFile(workbook, `Reporte_Control_Cajas_${new Date().toISOString().slice(0,10)}.xlsx`);
         }
 
