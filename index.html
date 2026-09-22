@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control de Ventas & Ganancias</title>
+    <title>Control de Ventas & Ganancias - Cajas Live</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
@@ -24,7 +24,7 @@
     <header class="border-b border-slate-800 bg-slate-900/80 sticky top-0 z-50">
         <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
             <h1 class="font-bold text-xl text-white flex items-center gap-2">
-                <i data-lucide="calculator" class="w-6 h-6 text-pink-500"></i> Control Cajas Live
+                <i data-lucide="package-check" class="w-6 h-6 text-pink-500"></i> Control Cajas Live
             </h1>
             <button onclick="resetAllData()" class="text-xs text-red-400 hover:bg-red-950/40 px-3 py-2 rounded-lg border border-red-900/30 flex items-center gap-1.5 transition-colors">
                 <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Reiniciar Todo
@@ -57,13 +57,35 @@
             </div>
         </section>
 
+        <!-- CONFIGURACIÓN DE PRECIOS POR CAJA DE UNIDAD -->
+        <div class="glass-card rounded-2xl p-6 border-indigo-500/30">
+            <h3 class="text-md font-bold text-white flex items-center gap-2 mb-2">
+                <i data-lucide="settings" class="w-5 h-5 text-indigo-400"></i> Precios de Referencia por Caja
+            </h3>
+            <p class="text-xs text-slate-400 mb-4">Define los precios por caja por defecto para agilizar el llenado de ventas y retiro de cajas.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Precio Compra / Costo por Caja (Bs.)</label>
+                    <input type="number" id="global-cost-box" step="0.01" min="0" placeholder="Ej. 50.00" 
+                        class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500"
+                        oninput="updateGlobalBoxPrices()">
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Precio Venta por Caja (Bs.)</label>
+                    <input type="number" id="global-sale-box" step="0.01" min="0" placeholder="Ej. 80.00" 
+                        class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500"
+                        oninput="updateGlobalBoxPrices()">
+                </div>
+            </div>
+        </div>
+
         <!-- FORMULARIOS -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
             <!-- Formulario 1: Capital y Cajas Retiradas del Participante -->
             <div class="glass-card rounded-2xl p-6">
                 <h3 class="text-md font-bold text-white flex items-center gap-2 mb-4">
-                    <i data-lucide="user-plus" class="w-5 h-5 text-pink-400"></i> Registrar Participante
+                    <i data-lucide="user-plus" class="w-5 h-5 text-pink-400"></i> Registrar Participante y Cajas
                 </h3>
                 <form id="partner-form" class="space-y-4">
                     <div>
@@ -78,10 +100,17 @@
                                 class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-pink-500">
                         </div>
                         <div>
-                            <label class="block text-xs text-slate-400 mb-1">Cajas Retiradas (Bs.)</label>
-                            <input type="number" id="partner-withdrawals" step="0.01" min="0" placeholder="0.00" 
-                                class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-pink-500">
+                            <label class="block text-xs text-slate-400 mb-1">Cant. Cajas Retiradas</label>
+                            <input type="number" id="partner-box-count" step="1" min="0" placeholder="0" 
+                                class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-pink-500"
+                                oninput="calcPartnerBoxCost()">
                         </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Costo / Valor Retiro en Cajas (Bs.)</label>
+                        <input type="number" id="partner-withdrawals" step="0.01" min="0" placeholder="0.00" 
+                            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-pink-500">
+                        <span class="text-[10px] text-slate-500 block mt-1">Se calcula automáticamente multiplicando las cajas retiradas por el costo unitario de compra.</span>
                     </div>
                     <button type="submit" class="w-full bg-pink-600 hover:bg-pink-500 text-white font-semibold text-sm py-2.5 rounded-xl transition-all">
                         Guardar Participante
@@ -89,20 +118,26 @@
                 </form>
             </div>
 
-            <!-- Formulario 2: Registrar Venta -->
+            <!-- Formulario 2: Registrar Venta por Cajas -->
             <div class="glass-card rounded-2xl p-6">
                 <h3 class="text-md font-bold text-white flex items-center gap-2 mb-4">
-                    <i data-lucide="shopping-cart" class="w-5 h-5 text-cyan-400"></i> Registrar Venta
+                    <i data-lucide="shopping-cart" class="w-5 h-5 text-cyan-400"></i> Registrar Venta por Cajas
                 </h3>
                 <form id="sale-form" class="space-y-4">
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Cantidad de Cajas Vendidas</label>
+                        <input type="number" id="sale-box-qty" step="1" min="1" value="1" required placeholder="1" 
+                            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500"
+                            oninput="calcSaleTotals()">
+                    </div>
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-xs text-slate-400 mb-1">Costo Producción (Bs.)</label>
+                            <label class="block text-xs text-slate-400 mb-1">Costo Prod. Total (Bs.)</label>
                             <input type="number" id="box-cost" step="0.01" min="0" required placeholder="0.00" 
                                 class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500">
                         </div>
                         <div>
-                            <label class="block text-xs text-slate-400 mb-1">Precio Venta (Bs.)</label>
+                            <label class="block text-xs text-slate-400 mb-1">Precio Venta Total (Bs.)</label>
                             <input type="number" id="sale-price" step="0.01" min="0" required placeholder="0.00" 
                                 class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500">
                         </div>
@@ -131,7 +166,7 @@
         <!-- TABLA DE REPARTO DE GANANCIAS POR SOCIO -->
         <div class="glass-card rounded-2xl p-6">
             <h3 class="text-md font-bold text-white flex items-center gap-2 mb-4">
-                <i data-lucide="users" class="w-5 h-5 text-emerald-400"></i> Reparto de Ganancias & Descuentos por Cajas
+                <i data-lucide="users" class="w-5 h-5 text-emerald-400"></i> Reparto de Ganancias & Descuentos por Cajas Retiradas
             </h3>
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-sm">
@@ -141,7 +176,8 @@
                             <th class="pb-3 font-semibold">Capital (Bs.)</th>
                             <th class="pb-3 font-semibold">% Aporte</th>
                             <th class="pb-3 font-semibold">Ganancia Corresponde (Bs.)</th>
-                            <th class="pb-3 font-semibold text-amber-400">Cajas Retiradas (Bs.)</th>
+                            <th class="pb-3 font-semibold text-amber-400">Cajas Retiradas</th>
+                            <th class="pb-3 font-semibold text-amber-400">Descuento Cajas (Bs.)</th>
                             <th class="pb-3 font-semibold text-right">Neto a Cobrar (Bs.)</th>
                             <th class="pb-3 font-semibold text-right">Borrar</th>
                         </tr>
@@ -161,6 +197,7 @@
                     <thead>
                         <tr class="text-xs uppercase text-slate-400 border-b border-slate-800">
                             <th class="pb-3 font-semibold">Método</th>
+                            <th class="pb-3 font-semibold">Cant. Cajas</th>
                             <th class="pb-3 font-semibold">Costo Prod. (Bs.)</th>
                             <th class="pb-3 font-semibold">Precio Venta (Bs.)</th>
                             <th class="pb-3 font-semibold">Ganancia (Bs.)</th>
@@ -177,51 +214,84 @@
     <script>
         let partners = JSON.parse(localStorage.getItem('tiktok_partners')) || [];
         let sales = JSON.parse(localStorage.getItem('tiktok_sales')) || [];
+        let boxPrices = JSON.parse(localStorage.getItem('tiktok_box_prices')) || { cost: 0, sale: 0 };
 
         const formatBs = (amount) => `Bs. ${parseFloat(amount || 0).toFixed(2)}`;
 
         function saveData() {
             localStorage.setItem('tiktok_partners', JSON.stringify(partners));
             localStorage.setItem('tiktok_sales', JSON.stringify(sales));
+            localStorage.setItem('tiktok_box_prices', JSON.stringify(boxPrices));
             render();
+        }
+
+        function updateGlobalBoxPrices() {
+            boxPrices.cost = parseFloat(document.getElementById('global-cost-box').value) || 0;
+            boxPrices.sale = parseFloat(document.getElementById('global-sale-box').value) || 0;
+            
+            calcSaleTotals();
+            calcPartnerBoxCost();
+            saveData();
+        }
+
+        function calcSaleTotals() {
+            const qty = parseFloat(document.getElementById('sale-box-qty').value) || 1;
+            if (boxPrices.cost > 0) {
+                document.getElementById('box-cost').value = (boxPrices.cost * qty).toFixed(2);
+            }
+            if (boxPrices.sale > 0) {
+                document.getElementById('sale-price').value = (boxPrices.sale * qty).toFixed(2);
+            }
+        }
+
+        function calcPartnerBoxCost() {
+            const boxes = parseFloat(document.getElementById('partner-box-count').value) || 0;
+            if (boxPrices.cost > 0) {
+                document.getElementById('partner-withdrawals').value = (boxPrices.cost * boxes).toFixed(2);
+            }
         }
 
         document.getElementById('partner-form').addEventListener('submit', (e) => {
             e.preventDefault();
             const name = document.getElementById('partner-name').value.trim();
             const capital = parseFloat(document.getElementById('partner-capital').value) || 0;
+            const boxCount = parseFloat(document.getElementById('partner-box-count').value) || 0;
             const withdrawals = parseFloat(document.getElementById('partner-withdrawals').value) || 0;
 
             const existingIndex = partners.findIndex(p => p.name.toLowerCase() === name.toLowerCase());
             if (existingIndex >= 0) {
                 partners[existingIndex].capital = capital;
+                partners[existingIndex].boxCount = boxCount;
                 partners[existingIndex].withdrawals = withdrawals;
             } else {
-                partners.push({ id: Date.now(), name, capital, withdrawals });
+                partners.push({ id: Date.now(), name, capital, boxCount, withdrawals });
             }
 
             document.getElementById('partner-name').value = '';
             document.getElementById('partner-capital').value = '';
+            document.getElementById('partner-box-count').value = '';
             document.getElementById('partner-withdrawals').value = '';
             saveData();
         });
 
         document.getElementById('sale-form').addEventListener('submit', (e) => {
             e.preventDefault();
+            const boxQty = parseFloat(document.getElementById('sale-box-qty').value) || 1;
             const boxCost = parseFloat(document.getElementById('box-cost').value) || 0;
             const salePrice = parseFloat(document.getElementById('sale-price').value) || 0;
             const paymentMethod = document.querySelector('input[name="payment-method"]:checked').value;
 
             sales.push({
                 id: Date.now(),
+                boxQty,
                 boxCost,
                 salePrice,
                 profit: salePrice - boxCost,
                 paymentMethod
             });
 
-            document.getElementById('box-cost').value = '';
-            document.getElementById('sale-price').value = '';
+            document.getElementById('sale-box-qty').value = '1';
+            calcSaleTotals();
             saveData();
         });
 
@@ -239,11 +309,18 @@
             if (confirm('¿Deseas reiniciar todo el registro?')) {
                 partners = [];
                 sales = [];
+                boxPrices = { cost: 0, sale: 0 };
+                document.getElementById('global-cost-box').value = '';
+                document.getElementById('global-sale-box').value = '';
                 saveData();
             }
         }
 
         function render() {
+            // Restore box price controls if present
+            if (boxPrices.cost) document.getElementById('global-cost-box').value = boxPrices.cost;
+            if (boxPrices.sale) document.getElementById('global-sale-box').value = boxPrices.sale;
+
             const totalSales = sales.reduce((acc, s) => acc + s.salePrice, 0);
             const totalCosts = sales.reduce((acc, s) => acc + s.boxCost, 0);
             const totalProfit = totalSales - totalCosts;
@@ -261,11 +338,12 @@
             const partnersBody = document.getElementById('partners-table-body');
             partnersBody.innerHTML = '';
             if (partners.length === 0) {
-                partnersBody.innerHTML = `<tr><td colspan="7" class="py-4 text-center text-xs text-slate-500">Sin participantes</td></tr>`;
+                partnersBody.innerHTML = `<tr><td colspan="8" class="py-4 text-center text-xs text-slate-500">Sin participantes</td></tr>`;
             } else {
                 partners.forEach(partner => {
                     const share = totalCapital > 0 ? (partner.capital / totalCapital) : 0;
                     const partnerProfit = totalProfit * share;
+                    const partnerBoxes = partner.boxCount || 0;
                     const partnerWithdrawals = partner.withdrawals || 0;
                     const netToCollect = (partner.capital + partnerProfit) - partnerWithdrawals;
 
@@ -275,6 +353,7 @@
                         <td class="py-3 text-slate-300">${formatBs(partner.capital)}</td>
                         <td class="py-3 text-slate-300">${(share * 100).toFixed(1)}%</td>
                         <td class="py-3 font-semibold ${partnerProfit >= 0 ? 'text-emerald-400' : 'text-red-400'}">${formatBs(partnerProfit)}</td>
+                        <td class="py-3 text-amber-400 font-medium">${partnerBoxes} caja(s)</td>
                         <td class="py-3 text-amber-400 font-medium">- ${formatBs(partnerWithdrawals)}</td>
                         <td class="py-3 font-bold text-white text-right">${formatBs(netToCollect)}</td>
                         <td class="py-3 text-right">
@@ -291,7 +370,7 @@
             const salesBody = document.getElementById('sales-table-body');
             salesBody.innerHTML = '';
             if (sales.length === 0) {
-                salesBody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-xs text-slate-500">Sin ventas registradas</td></tr>`;
+                salesBody.innerHTML = `<tr><td colspan="6" class="py-4 text-center text-xs text-slate-500">Sin ventas registradas</td></tr>`;
             } else {
                 sales.slice().reverse().forEach(sale => {
                     const row = document.createElement('tr');
@@ -301,6 +380,7 @@
                                 ${sale.paymentMethod}
                             </span>
                         </td>
+                        <td class="py-3 text-slate-300">${sale.boxQty || 1} caja(s)</td>
                         <td class="py-3 text-slate-300">${formatBs(sale.boxCost)}</td>
                         <td class="py-3 text-slate-300">${formatBs(sale.salePrice)}</td>
                         <td class="py-3 font-semibold ${sale.profit >= 0 ? 'text-emerald-400' : 'text-red-400'}">${formatBs(sale.profit)}</td>
@@ -317,7 +397,10 @@
             lucide.createIcons();
         }
 
-        document.addEventListener('DOMContentLoaded', render);
+        document.addEventListener('DOMContentLoaded', () => {
+            render();
+            calcSaleTotals();
+        });
     </script>
 </body>
 </html>
