@@ -16,7 +16,7 @@
     <style>
         body { font-family: 'Inter', sans-serif; }
         .glass-card {
-            background: rgba(30, 41, 59, 0.7);
+            background: rgba(30, 41, 59, 0.75);
             backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.08);
         }
@@ -166,16 +166,20 @@
 
         </div>
 
-        <!-- TABLA DE REPARTO POR SOCIO (Esta sección se convertirá en foto de alta calidad) -->
-        <div id="report-card" class="glass-card rounded-2xl p-6 border border-emerald-500/30">
+        <!-- VISTA DE SOCIOS EN PANTALLA -->
+        <div class="glass-card rounded-2xl p-6 border border-emerald-500/30">
             <div class="flex flex-wrap justify-between items-center mb-4 gap-2">
                 <h3 class="text-md font-bold text-white flex items-center gap-2">
                     <i data-lucide="users" class="w-5 h-5 text-emerald-400"></i> Informe de Liquidación por Participante
                 </h3>
-                <span class="text-xs text-slate-400" id="report-date-tag"></span>
+                <span class="text-xs text-slate-400" id="live-date-tag"></span>
             </div>
-            
-            <div class="overflow-x-auto">
+
+            <!-- Vista de Tarjetas para Móviles -->
+            <div id="partners-cards-container" class="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:hidden"></div>
+
+            <!-- Vista de Tabla para Escritorio -->
+            <div class="hidden lg:block overflow-x-auto">
                 <table class="w-full text-left text-sm">
                     <thead>
                         <tr class="text-xs uppercase text-slate-400 border-b border-slate-800">
@@ -186,14 +190,14 @@
                             <th class="pb-3 font-semibold">Ganancia (Bs.)</th>
                             <th class="pb-3 font-semibold text-amber-400">Cajas Retiradas</th>
                             <th class="pb-3 font-semibold text-right">Neto a Cobrar (Bs.)</th>
-                            <th class="pb-3 font-semibold text-right no-export">Borrar</th>
+                            <th class="pb-3 font-semibold text-right">Borrar</th>
                         </tr>
                     </thead>
                     <tbody id="partners-table-body" class="divide-y divide-slate-800/50"></tbody>
                 </table>
             </div>
 
-            <!-- Resumen al pie del informe de imagen -->
+            <!-- Resumen al pie del informe -->
             <div class="mt-6 pt-4 border-t border-slate-800 grid grid-cols-2 sm:grid-cols-4 gap-3 text-center text-xs">
                 <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
                     <span class="text-slate-400 block text-[10px] uppercase">Cajas Aportadas</span>
@@ -237,6 +241,48 @@
         </div>
 
     </main>
+
+    <!-- CONTENEDOR OCULTO DEDICADO EXCLUSIVAMENTE PARA CAPTURA DE FOTO HD SIN RECORTES -->
+    <div style="position: absolute; left: -9999px; top: -9999px;">
+        <div id="export-image-container" style="width: 780px; background-color: #020617; color: #f8fafc; padding: 28px; border-radius: 20px; font-family: 'Inter', sans-serif; border: 1px solid rgba(16, 185, 129, 0.3);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #1e293b; padding-bottom: 14px;">
+                <div>
+                    <h2 style="font-size: 20px; font-weight: 700; color: #ffffff; margin: 0; display: flex; align-items: center; gap: 8px;">
+                        Informe de Liquidación por Participante
+                    </h2>
+                    <p style="font-size: 12px; color: #94a3b8; margin: 4px 0 0 0;" id="export-date-tag"></p>
+                </div>
+                <div style="text-align: right;">
+                    <span style="font-size: 11px; background: rgba(236, 72, 153, 0.15); color: #f472b6; border: 1px solid rgba(236, 72, 153, 0.3); padding: 4px 10px; border-radius: 8px; font-weight: 600;">
+                        Control de Cajas
+                    </span>
+                </div>
+            </div>
+
+            <!-- Tarjetas formateadas en columna limpia dentro de la imagen -->
+            <div id="export-partners-list" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;"></div>
+
+            <!-- Resumen Total al Pie -->
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; border-top: 1px solid #1e293b; padding-top: 16px; text-align: center;">
+                <div style="background: rgba(15, 23, 42, 0.8); padding: 10px; border-radius: 12px; border: 1px solid #1e293b;">
+                    <span style="font-size: 10px; color: #94a3b8; text-transform: uppercase; display: block; margin-bottom: 2px;">Cajas Aportadas</span>
+                    <span style="font-size: 15px; font-weight: 700; color: #ffffff;" id="export-total-boxes">0</span>
+                </div>
+                <div style="background: rgba(15, 23, 42, 0.8); padding: 10px; border-radius: 12px; border: 1px solid #1e293b;">
+                    <span style="font-size: 10px; color: #94a3b8; text-transform: uppercase; display: block; margin-bottom: 2px;">Cajas Retiradas</span>
+                    <span style="font-size: 15px; font-weight: 700; color: #fbbf24;" id="export-total-withdrawals">0</span>
+                </div>
+                <div style="background: rgba(15, 23, 42, 0.8); padding: 10px; border-radius: 12px; border: 1px solid #1e293b;">
+                    <span style="font-size: 10px; color: #94a3b8; text-transform: uppercase; display: block; margin-bottom: 2px;">Ganancia Total</span>
+                    <span style="font-size: 15px; font-weight: 700; color: #34d399;" id="export-total-profit">Bs. 0.00</span>
+                </div>
+                <div style="background: rgba(15, 23, 42, 0.8); padding: 10px; border-radius: 12px; border: 1px solid #1e293b;">
+                    <span style="font-size: 10px; color: #94a3b8; text-transform: uppercase; display: block; margin-bottom: 2px;">Neto Liquidado</span>
+                    <span style="font-size: 15px; font-weight: 700; color: #22d3ee;" id="export-total-payout">Bs. 0.00</span>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script>
         let config = JSON.parse(localStorage.getItem('tiktok_config')) || { costPerBox: 10, salePerBox: 15 };
@@ -361,16 +407,28 @@
             document.getElementById('metric-total-costs').textContent = formatBs(totalCosts);
             document.getElementById('metric-net-profit').textContent = formatBs(totalProfit);
 
-            // Fecha en informe
-            document.getElementById('report-date-tag').textContent = `Actualizado: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+            const dateString = `Actualizado: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+            document.getElementById('live-date-tag').textContent = dateString;
+            document.getElementById('export-date-tag').textContent = dateString;
 
             let grandTotalPayout = 0;
 
-            // TABLA SOCIOS
+            // 1. RENDER TARJETAS MÓVILES
+            const cardsContainer = document.getElementById('partners-cards-container');
+            cardsContainer.innerHTML = '';
+
+            // 2. RENDER TABLA ESCRITORIO
             const partnersBody = document.getElementById('partners-table-body');
             partnersBody.innerHTML = '';
+
+            // 3. RENDER IMAGEN EXPORTACION
+            const exportList = document.getElementById('export-partners-list');
+            exportList.innerHTML = '';
+
             if (partners.length === 0) {
+                cardsContainer.innerHTML = `<div class="p-4 text-center text-xs text-slate-500 bg-slate-900/50 rounded-xl">Sin participantes registrados</div>`;
                 partnersBody.innerHTML = `<tr><td colspan="8" class="py-4 text-center text-xs text-slate-500">Sin participantes registrados</td></tr>`;
+                exportList.innerHTML = `<div style="text-align: center; font-size: 12px; color: #64748b; padding: 20px;">Sin participantes registrados</div>`;
             } else {
                 partners.forEach(partner => {
                     const share = totalPartnerBoxes > 0 ? (partner.boxes / totalPartnerBoxes) : 0;
@@ -380,6 +438,43 @@
                     const netToCollect = (partnerCapitalBs + partnerProfit) - withdrawalBs;
                     grandTotalPayout += netToCollect;
 
+                    // Tarjeta Móvil Live
+                    const card = document.createElement('div');
+                    card.className = "bg-slate-900/90 border border-slate-800 rounded-xl p-4 space-y-3";
+                    card.innerHTML = `
+                        <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                            <span class="font-bold text-white text-base">${partner.name}</span>
+                            <button onclick="deletePartner(${partner.id})" class="text-slate-500 hover:text-red-400 p-1">
+                                <i data-lucide="trash" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            <div>
+                                <span class="text-slate-400 block text-[10px] uppercase">Cajas Aportadas</span>
+                                <span class="text-slate-200 font-semibold">${partner.boxes} cajas</span>
+                                <span class="text-slate-500 block text-[10px]">(${formatBs(partnerCapitalBs)})</span>
+                            </div>
+                            <div>
+                                <span class="text-slate-400 block text-[10px] uppercase">% Aporte</span>
+                                <span class="text-slate-200 font-semibold">${(share * 100).toFixed(1)}%</span>
+                            </div>
+                            <div>
+                                <span class="text-slate-400 block text-[10px] uppercase">Ganancia Corresponde</span>
+                                <span class="font-semibold ${partnerProfit >= 0 ? 'text-emerald-400' : 'text-red-400'}">${formatBs(partnerProfit)}</span>
+                            </div>
+                            <div>
+                                <span class="text-amber-400/80 block text-[10px] uppercase">Cajas Retiradas</span>
+                                <span class="text-amber-400 font-medium">${partner.withdrawals || 0} cajas (${formatBs(withdrawalBs)})</span>
+                            </div>
+                        </div>
+                        <div class="pt-2 border-t border-slate-800/80 flex justify-between items-center">
+                            <span class="text-xs text-slate-400 uppercase font-semibold">Neto a Cobrar:</span>
+                            <span class="text-base font-bold text-emerald-400">${formatBs(netToCollect)}</span>
+                        </div>
+                    `;
+                    cardsContainer.appendChild(card);
+
+                    // Fila Tabla Escritorio
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td class="py-3 font-medium text-white">${partner.name}</td>
@@ -389,21 +484,59 @@
                         <td class="py-3 font-semibold ${partnerProfit >= 0 ? 'text-emerald-400' : 'text-red-400'}">${formatBs(partnerProfit)}</td>
                         <td class="py-3 text-amber-400 font-medium">${partner.withdrawals || 0} cajas (${formatBs(withdrawalBs)})</td>
                         <td class="py-3 font-bold text-white text-right">${formatBs(netToCollect)}</td>
-                        <td class="py-3 text-right no-export">
+                        <td class="py-3 text-right">
                             <button onclick="deletePartner(${partner.id})" class="text-slate-500 hover:text-red-400">
                                 <i data-lucide="trash" class="w-4 h-4"></i>
                             </button>
                         </td>
                     `;
                     partnersBody.appendChild(row);
+
+                    // Elemento para Exportar Foto HD
+                    const exportItem = document.createElement('div');
+                    exportItem.style.cssText = "background: rgba(15, 23, 42, 0.9); border: 1px solid #1e293b; border-radius: 12px; padding: 14px;";
+                    exportItem.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 8px; margin-bottom: 10px;">
+                            <span style="font-size: 16px; font-weight: 700; color: #ffffff;">${partner.name}</span>
+                            <span style="font-size: 14px; font-weight: 700; color: #10b981; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); padding: 3px 10px; border-radius: 6px;">
+                                Neto: ${formatBs(netToCollect)}
+                            </span>
+                        </div>
+                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; font-size: 11px;">
+                            <div>
+                                <span style="color: #94a3b8; display: block; font-size: 9px; text-transform: uppercase;">Aporte</span>
+                                <span style="color: #cbd5e1; font-weight: 600;">${partner.boxes} cajas</span>
+                                <span style="color: #64748b; display: block; font-size: 9px;">(${formatBs(partnerCapitalBs)})</span>
+                            </div>
+                            <div>
+                                <span style="color: #94a3b8; display: block; font-size: 9px; text-transform: uppercase;">% Part.</span>
+                                <span style="color: #cbd5e1; font-weight: 600;">${(share * 100).toFixed(1)}%</span>
+                            </div>
+                            <div>
+                                <span style="color: #94a3b8; display: block; font-size: 9px; text-transform: uppercase;">Ganancia</span>
+                                <span style="color: ${partnerProfit >= 0 ? '#34d399' : '#f87171'}; font-weight: 600;">${formatBs(partnerProfit)}</span>
+                            </div>
+                            <div>
+                                <span style="color: #fbbf24; display: block; font-size: 9px; text-transform: uppercase;">Retiros</span>
+                                <span style="color: #fbbf24; font-weight: 600;">${partner.withdrawals || 0} cajas</span>
+                                <span style="color: #92400e; display: block; font-size: 9px;">(${formatBs(withdrawalBs)})</span>
+                            </div>
+                        </div>
+                    `;
+                    exportList.appendChild(exportItem);
                 });
             }
 
-            // Totales al pie del cuadro de informe
+            // Actualizar Totales en UI Live e Imagen
             document.getElementById('report-total-boxes').textContent = `${totalPartnerBoxes} cajas`;
             document.getElementById('report-total-withdrawals').textContent = `${totalWithdrawals} cajas`;
             document.getElementById('report-total-profit').textContent = formatBs(totalProfit);
             document.getElementById('report-total-payout').textContent = formatBs(grandTotalPayout);
+
+            document.getElementById('export-total-boxes').textContent = `${totalPartnerBoxes} cajas`;
+            document.getElementById('export-total-withdrawals').textContent = `${totalWithdrawals} cajas`;
+            document.getElementById('export-total-profit').textContent = formatBs(totalProfit);
+            document.getElementById('export-total-payout').textContent = formatBs(grandTotalPayout);
 
             // TABLA VENTAS
             const salesBody = document.getElementById('sales-table-body');
@@ -436,35 +569,27 @@
             lucide.createIcons();
         }
 
-        // FUNCIÓN PARA DESCARGAR EL INFORME COMO IMAGEN (PNG)
+        // FUNCIÓN PARA DESCARGAR LA IMAGEN COMPLETA SIN RECORTES MÓVILES
         function downloadReportImage() {
-            const reportElement = document.getElementById('report-card');
-            
-            // Ocultar botones de borrar temporalmente para la foto
-            const noExportElems = reportElement.querySelectorAll('.no-export');
-            noExportElems.forEach(el => el.style.display = 'none');
+            const exportElement = document.getElementById('export-image-container');
 
-            html2canvas(reportElement, {
-                backgroundColor: '#020617', // Fondo slate-950
-                scale: 2, // Imagen HD de alta resolución
+            html2canvas(exportElement, {
+                backgroundColor: '#020617',
+                scale: 2, // Calidad HD
+                windowWidth: 800, // Ancho de renderizado forzado para evitar recortes móviles
                 logging: false,
                 useCORS: true
             }).then(canvas => {
-                // Restaurar visibilidad de los botones de borrar
-                noExportElems.forEach(el => el.style.display = '');
-
-                // Descargar imagen
                 const link = document.createElement('a');
                 link.download = `Informe_Socios_Cajas_${new Date().toISOString().slice(0,10)}.png`;
                 link.href = canvas.toDataURL('image/png');
                 link.click();
             }).catch(err => {
-                noExportElems.forEach(el => el.style.display = '');
                 console.error("Error al generar la foto del informe:", err);
             });
         }
 
-        // FUNCIÓN DE EXPORTACIÓN A EXCEL EN UNA SOLA HOJA
+        // EXPORTAR EXCEL EN UNA SOLA HOJA
         function exportToExcelSingleSheet() {
             const totalSales = sales.reduce((acc, s) => acc + s.salePrice, 0);
             const totalCosts = sales.reduce((acc, s) => acc + s.boxCost, 0);
@@ -477,7 +602,6 @@
 
             let sheetData = [];
 
-            // 1. TITULO Y PRECIOS BASE
             sheetData.push(["REPORTE GENERAL DE CONTROL DE CAJAS & GANANCIAS"]);
             sheetData.push(["Fecha de reporte:", new Date().toLocaleString()]);
             sheetData.push([]);
@@ -486,7 +610,6 @@
             sheetData.push(["Precio Venta por Caja (Bs.):", config.salePerBox]);
             sheetData.push([]);
 
-            // 2. RESUMEN FINANCIERO
             sheetData.push(["RESUMEN DE MÉTRICAS GENERALES"]);
             sheetData.push(["Total Cajas Aportadas por Socios:", totalPartnerBoxes]);
             sheetData.push(["Total Cajas Vendidas:", totalBoxesSold]);
@@ -497,7 +620,6 @@
             sheetData.push(["Ganancia Neta Total (Bs.):", totalProfit]);
             sheetData.push([]);
 
-            // 3. TABLA DE PARTICIPANTES
             sheetData.push(["REPARTO DE GANANCIAS Y CAJAS POR PARTICIPANTE"]);
             sheetData.push([
                 "Participante", 
@@ -535,7 +657,6 @@
 
             sheetData.push([]);
 
-            // 4. HISTORIAL DE VENTAS
             sheetData.push(["HISTORIAL DE VENTAS REGISTRADAS"]);
             sheetData.push([
                 "Método de Pago", 
